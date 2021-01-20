@@ -1,12 +1,64 @@
 package newrelic
 
 import (
-	"log"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/newrelic/newrelic-client-go/pkg/errors"
+	"log"
 )
+
+func scheduleSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"end_repeat": {
+				Type: schema.TypeString,
+				Optional: true,
+				Description: "The datetime stamp when the MutingRule schedule should stop repeating.",
+				//TODO: add validation func
+			},
+			"end_time": {
+				Type: schema.TypeString,
+				Optional: true,
+				Description: "The datetime stamp representing when the MutingRule should end.",
+				//TODO: add validation func
+			},
+			"repeat": {
+				//TODO: should this be an enum type? Should we mention enum values in desc?
+				Type: schema.TypeString,
+				Optional: true,
+				Description: "The frequency the MutingRule schedule repeats.",
+				//TODO: add validation func
+			},
+			"repeat_count": {
+				Type: schema.TypeInt,
+				Optional: true,
+				Description: "The number of times the MutingRule schedule should repeat.",
+				//TODO: add validation func?
+			},
+			"start_time": {
+				Type: schema.TypeString,
+				Optional: true,
+				Description: "The datetime stamp representing when the MutingRule should start.",
+				//TODO: add validation func
+			},
+			"time_zone": {
+				Type: schema.TypeString,
+				Required: true,
+				Description: "The time zone that applies to the MutingRule schedule.",
+				//TODO: add validation func
+			},
+			"weekly_repeat_days": {
+				Type: schema.TypeString,
+				Optional: true,
+				Description: "The day(s) of the week that a MutingRule should repeat when the repeat field is set to WEEKLY.",
+				//TODO: Change to Type: schema.TypeList,
+				//MinItems: 1,
+				//MaxItems: 7,
+				//Elem:
+			},
+		},
+	}
+}
 
 func resourceNewRelicAlertMutingRule() *schema.Resource {
 	return &schema.Resource{
@@ -81,6 +133,14 @@ func resourceNewRelicAlertMutingRule() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The description of the MutingRule.",
+			},
+			"schedule": {
+				Type:          schema.TypeList,
+				MinItems:      1,
+				MaxItems:      1,
+				Optional:      true,
+				Elem:          scheduleSchema(),
+				Description:   "The time window when the MutingRule should actively mute violations.",
 			},
 		},
 	}
