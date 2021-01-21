@@ -65,10 +65,13 @@ func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleSched
 	}
 
 	if weeklyRepeatDays, ok := cfg["weekly_repeat_days"]; ok {
-		r := weeklyRepeatDays.([]alerts.DayOfWeek)
-		schedule.WeeklyRepeatDays = &r
+		repeatDaysAsList := weeklyRepeatDays.(*schema.Set).List()
+		repeatDays := make([]alerts.DayOfWeek, len(repeatDaysAsList))
+		for i, day := range repeatDaysAsList {
+			repeatDays[i] = alerts.DayOfWeek(strings.ToUpper(day.(string)))
+		}
+		schedule.WeeklyRepeatDays = &repeatDays
 	}
-
 	return schedule
 }
 

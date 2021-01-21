@@ -44,6 +44,7 @@ func TestAccNewRelicAlertMutingRule_Basic(t *testing.T) {
 	})
 }
 
+
 func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 	resourceName := "newrelic_alert_muting_rule.foo"
 	rName := acctest.RandString(5)
