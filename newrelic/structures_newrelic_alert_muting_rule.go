@@ -3,6 +3,8 @@ package newrelic
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/newrelic/newrelic-client-go/pkg/alerts"
+	"strings"
+	"time"
 )
 
 func expandMutingRuleCreateInput(d *schema.ResourceData) alerts.MutingRuleCreateInput {
@@ -16,7 +18,58 @@ func expandMutingRuleCreateInput(d *schema.ResourceData) alerts.MutingRuleCreate
 		createInput.Condition = expandMutingRuleConditionGroup(e.([]interface{})[0].(map[string]interface{}))
 	}
 
+	if e, ok := d.GetOk("schedule"); ok {
+		schedule := expandMutingRuleSchedule(e.([]interface{})[0].(map[string]interface{}))
+		createInput.Schedule = &schedule
+	}
+
 	return createInput
+}
+
+func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleScheduleCreateInput {
+	schedule := alerts.MutingRuleScheduleCreateInput{}
+
+	if startTime, ok := cfg["start_time"]; ok {
+		rawStartTime := startTime.(string)
+		formattedStartTime, _ := time.Parse(time.RFC3339, rawStartTime)
+		//TODO what to do with err?
+		schedule.StartTime = &alerts.NaiveDateTime{Time: formattedStartTime}
+	}
+
+	if endTime, ok := cfg["end_time"]; ok {
+		rawEndTime := endTime.(string)
+		formattedEndTime, _ := time.Parse(time.RFC3339, rawEndTime)
+		//TODO what to do with err?
+		schedule.EndTime = &alerts.NaiveDateTime{Time: formattedEndTime}
+	}
+
+	if timeZone, ok := cfg["time_zone"]; ok {
+		schedule.TimeZone = timeZone.(string)
+	}
+
+	if repeat, ok := cfg["repeat"]; ok {
+		r := alerts.MutingRuleScheduleRepeat(strings.ToUpper(repeat.(string)))
+		schedule.Repeat = &r
+	}
+
+	if endRepeat, ok := cfg["end_repeat"]; ok {
+		rawEndRepeat := endRepeat.(string)
+		formattedEndRepeat, _ := time.Parse(time.RFC3339, rawEndRepeat)
+		//TODO what to do with err?
+		schedule.EndRepeat = &alerts.NaiveDateTime{Time: formattedEndRepeat}
+	}
+
+	if repeatCount, ok := cfg["repeat_count"]; ok {
+		r := repeatCount.(int)
+		schedule.RepeatCount = &r
+	}
+
+	if weeklyRepeatDays, ok := cfg["weekly_repeat_days"]; ok {
+		r := weeklyRepeatDays.([]alerts.DayOfWeek)
+		schedule.WeeklyRepeatDays = &r
+	}
+
+	return schedule
 }
 
 func expandMutingRuleUpdateInput(d *schema.ResourceData) alerts.MutingRuleUpdateInput {

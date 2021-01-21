@@ -138,7 +138,7 @@ resource "newrelic_alert_muting_rule" "foo" {
 		time_zone          = "America/Los_Angeles"
 		repeat             = "WEEKLY"
 		end_repeat         = "2021-06-11T12:00:00"
-		weekly_repeat_days = "['MONDAY', 'TUESDAY', 'FRIDAY']"
+		weekly_repeat_days = ["MONDAY", "TUESDAY", "FRIDAY"]
 	}
 }`, name, description, attribute, operator, values)
 }
