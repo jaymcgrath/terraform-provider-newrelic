@@ -31,14 +31,14 @@ func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleSched
 
 	if startTime, ok := cfg["start_time"]; ok {
 		rawStartTime := startTime.(string)
-		formattedStartTime, _ := time.Parse(time.RFC3339, rawStartTime)
+		formattedStartTime, _ := time.Parse("2006-01-02T15:04:05", rawStartTime)
 		//TODO what to do with err?
 		schedule.StartTime = &alerts.NaiveDateTime{Time: formattedStartTime}
 	}
 
 	if endTime, ok := cfg["end_time"]; ok {
 		rawEndTime := endTime.(string)
-		formattedEndTime, _ := time.Parse(time.RFC3339, rawEndTime)
+		formattedEndTime, _ := time.Parse("2006-01-02T15:04:05", rawEndTime)
 		//TODO what to do with err?
 		schedule.EndTime = &alerts.NaiveDateTime{Time: formattedEndTime}
 	}
@@ -54,14 +54,16 @@ func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleSched
 
 	if endRepeat, ok := cfg["end_repeat"]; ok {
 		rawEndRepeat := endRepeat.(string)
-		formattedEndRepeat, _ := time.Parse(time.RFC3339, rawEndRepeat)
+		formattedEndRepeat, _ := time.Parse("2006-01-02T15:04:05", rawEndRepeat)
 		//TODO what to do with err?
-		schedule.EndRepeat = &alerts.NaiveDateTime{Time: formattedEndRepeat}
+		schedule.EndRepeat = &alerts.NaiveDateTime{formattedEndRepeat}
 	}
 
 	if repeatCount, ok := cfg["repeat_count"]; ok {
 		r := repeatCount.(int)
-		schedule.RepeatCount = &r
+		if r > 0 {
+			schedule.RepeatCount = &r
+		}
 	}
 
 	if weeklyRepeatDays, ok := cfg["weekly_repeat_days"]; ok {

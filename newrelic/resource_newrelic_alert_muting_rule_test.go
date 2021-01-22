@@ -62,17 +62,17 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 				),
 			},
 			// Test: Update
-			{
-				Config: testAccNewRelicAlertMutingRuleWithSchedule(rName, "second muting rule", "conditionType", "NOT_EQUALS", "baseline"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckNewRelicAlertMutingRuleExists(resourceName),
-				),
-			},
+			//{
+			//	Config: testAccNewRelicAlertMutingRuleWithSchedule(rName, "second muting rule", "conditionType", "NOT_EQUALS", "baseline"),
+			//	Check: resource.ComposeTestCheckFunc(
+			//		testAccCheckNewRelicAlertMutingRuleExists(resourceName),
+			//	),
+			//},
 			// // Test: Import
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true},
+		//	{
+		//		ResourceName:      resourceName,
+		//		ImportState:       true,
+		//		ImportStateVerify: true},
 		},
 	})
 }
