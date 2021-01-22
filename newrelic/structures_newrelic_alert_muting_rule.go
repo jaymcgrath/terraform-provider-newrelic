@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func expandMutingRuleCreateInput(d *schema.ResourceData) alerts.MutingRuleCreateInput {
+func expandMutingRuleCreateInput(d *schema.ResourceData) (alerts.MutingRuleCreateInput, error) {
 	createInput := alerts.MutingRuleCreateInput{
 		Enabled:     d.Get("enabled").(bool),
 		Name:        d.Get("name").(string),
@@ -19,28 +19,39 @@ func expandMutingRuleCreateInput(d *schema.ResourceData) alerts.MutingRuleCreate
 	}
 
 	if e, ok := d.GetOk("schedule"); ok {
-		schedule := expandMutingRuleSchedule(e.([]interface{})[0].(map[string]interface{}))
+		schedule, err := expandMutingRuleSchedule(e.([]interface{})[0].(map[string]interface{}))
+		if err != nil {
+			return alerts.MutingRuleCreateInput{}, err
+		}
 		createInput.Schedule = &schedule
 	}
 
-	return createInput
+	return createInput, nil
 }
 
-func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleScheduleCreateInput {
+func expandMutingRuleSchedule(cfg map[string]interface{}) (alerts.MutingRuleScheduleCreateInput, error) {
 	schedule := alerts.MutingRuleScheduleCreateInput{}
 
 	if startTime, ok := cfg["start_time"]; ok {
 		rawStartTime := startTime.(string)
-		formattedStartTime, _ := time.Parse("2006-01-02T15:04:05", rawStartTime)
-		//TODO what to do with err?
-		schedule.StartTime = &alerts.NaiveDateTime{Time: formattedStartTime}
+		if rawStartTime != "" {
+			formattedStartTime, err := time.Parse("2006-01-02T15:04:05", rawStartTime)
+			if err != nil {
+				return alerts.MutingRuleScheduleCreateInput{}, err
+			}
+			schedule.StartTime = &alerts.NaiveDateTime{Time: formattedStartTime}
+		}
 	}
 
 	if endTime, ok := cfg["end_time"]; ok {
 		rawEndTime := endTime.(string)
-		formattedEndTime, _ := time.Parse("2006-01-02T15:04:05", rawEndTime)
-		//TODO what to do with err?
-		schedule.EndTime = &alerts.NaiveDateTime{Time: formattedEndTime}
+		if rawEndTime != "" {
+			formattedEndTime, err := time.Parse("2006-01-02T15:04:05", rawEndTime)
+			if err != nil {
+				return alerts.MutingRuleScheduleCreateInput{}, err
+			}
+			schedule.EndTime = &alerts.NaiveDateTime{Time: formattedEndTime}
+		}
 	}
 
 	if timeZone, ok := cfg["time_zone"]; ok {
@@ -48,15 +59,24 @@ func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleSched
 	}
 
 	if repeat, ok := cfg["repeat"]; ok {
-		r := alerts.MutingRuleScheduleRepeat(strings.ToUpper(repeat.(string)))
-		schedule.Repeat = &r
+		r := repeat.(string)
+		if r != "" {
+			sr := alerts.MutingRuleScheduleRepeat(strings.ToUpper(r))
+			schedule.Repeat = &sr
+
+		}
 	}
 
 	if endRepeat, ok := cfg["end_repeat"]; ok {
 		rawEndRepeat := endRepeat.(string)
-		formattedEndRepeat, _ := time.Parse("2006-01-02T15:04:05", rawEndRepeat)
-		//TODO what to do with err?
-		schedule.EndRepeat = &alerts.NaiveDateTime{formattedEndRepeat}
+		if rawEndRepeat != "" {
+			formattedEndRepeat, err := time.Parse("2006-01-02T15:04:05", rawEndRepeat)
+			if err != nil {
+				return alerts.MutingRuleScheduleCreateInput{}, err
+			}
+			schedule.EndRepeat = &alerts.NaiveDateTime{Time:formattedEndRepeat}
+		}
+
 	}
 
 	if repeatCount, ok := cfg["repeat_count"]; ok {
@@ -68,13 +88,15 @@ func expandMutingRuleSchedule(cfg map[string]interface{}) alerts.MutingRuleSched
 
 	if weeklyRepeatDays, ok := cfg["weekly_repeat_days"]; ok {
 		repeatDaysAsList := weeklyRepeatDays.(*schema.Set).List()
-		repeatDays := make([]alerts.DayOfWeek, len(repeatDaysAsList))
-		for i, day := range repeatDaysAsList {
-			repeatDays[i] = alerts.DayOfWeek(strings.ToUpper(day.(string)))
+		if rdLen := len(repeatDaysAsList); rdLen > 0 {
+			repeatDays := make([]alerts.DayOfWeek, rdLen)
+			for i, day := range repeatDaysAsList {
+				repeatDays[i] = alerts.DayOfWeek(strings.ToUpper(day.(string)))
+			}
+			schedule.WeeklyRepeatDays = &repeatDays
 		}
-		schedule.WeeklyRepeatDays = &repeatDays
 	}
-	return schedule
+	return schedule, nil
 }
 
 func expandMutingRuleUpdateInput(d *schema.ResourceData) alerts.MutingRuleUpdateInput {

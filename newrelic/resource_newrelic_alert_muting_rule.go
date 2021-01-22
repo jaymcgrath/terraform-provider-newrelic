@@ -149,7 +149,10 @@ func resourceNewRelicAlertMutingRuleCreate(d *schema.ResourceData, meta interfac
 	providerConfig := meta.(*ProviderConfig)
 	client := providerConfig.NewClient
 
-	createInput := expandMutingRuleCreateInput(d)
+	createInput, err := expandMutingRuleCreateInput(d)
+	if err != nil {
+		return err
+	}
 
 	accountID := selectAccountID(providerConfig, d)
 
