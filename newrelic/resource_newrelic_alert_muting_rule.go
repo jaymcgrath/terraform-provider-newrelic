@@ -196,7 +196,10 @@ func resourceNewRelicAlertMutingRuleRead(d *schema.ResourceData, meta interface{
 
 func resourceNewRelicAlertMutingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).NewClient
-	updateInput := expandMutingRuleUpdateInput(d)
+	updateInput, err := expandMutingRuleUpdateInput(d)
+	if err != nil {
+		return err
+	}
 
 	log.Printf("[INFO] Updating New Relic One alert muting rule.")
 

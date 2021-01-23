@@ -44,7 +44,6 @@ func TestAccNewRelicAlertMutingRule_Basic(t *testing.T) {
 	})
 }
 
-
 func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 	resourceName := "newrelic_alert_muting_rule.foo"
 	rName := acctest.RandString(5)
@@ -56,26 +55,51 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Test: Create
 			{
-				Config: testAccNewRelicAlertMutingRuleWithSchedule(rName, "new muting rule", "product", "EQUALS", "APM"),
+				Config: testAccNewRelicAlertMutingRuleWithSchedule(
+					rName,
+					"new muting rule",
+					"product",
+					"EQUALS",
+					"APM",
+					`
+						start_time         = "2021-01-21T15:30:00"
+						end_time           = "2021-01-21T16:30:00"
+						time_zone          = "America/Los_Angeles"
+						repeat             = "WEEKLY"
+						end_repeat         = "2021-06-11T12:00:00"
+						weekly_repeat_days = ["MONDAY", "TUESDAY", "FRIDAY"]
+					`,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNewRelicAlertMutingRuleExists(resourceName),
 				),
 			},
 			//Test: Update
 			{
-				Config: testAccNewRelicAlertMutingRuleWithSchedule(rName, "second muting rule", "conditionType", "NOT_EQUALS", "baseline"),
+				Config: testAccNewRelicAlertMutingRuleWithSchedule(rName,
+					"updated muting rule schedule",
+					"conditionType",
+					"NOT_EQUALS",
+					"baseline",
+					`
+						end_repeat         = "2022-06-11T12:00:00"
+						weekly_repeat_days = ["MONDAY", "TUESDAY", "THURSDAY", "FRIDAY"]
+					`,
+				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNewRelicAlertMutingRuleExists(resourceName),
 				),
 			},
 			// // Test: Import
-		//	{
-		//		ResourceName:      resourceName,
-		//		ImportState:       true,
-		//		ImportStateVerify: true},
+			//	{
+			//		ResourceName:      resourceName,
+			//		ImportState:       true,
+			//		ImportStateVerify: true},
 		},
 	})
 }
+
+//TODO: Test passing "LLAMA" to Repeat
 
 func testAccNewRelicAlertMutingRuleBasic(
 	name string,
@@ -113,6 +137,7 @@ func testAccNewRelicAlertMutingRuleWithSchedule(
 	attribute string,
 	operator string,
 	values string,
+	schedule string,
 ) string {
 	return fmt.Sprintf(`
 
@@ -133,15 +158,10 @@ resource "newrelic_alert_muting_rule" "foo" {
 		}
 		operator = "AND"
 	}
-	schedule {
-		start_time         = "2021-01-21T15:30:00"
-		end_time           = "2021-01-21T16:30:00"
-		time_zone          = "America/Los_Angeles"
-		repeat             = "WEEKLY"
-		end_repeat         = "2021-06-11T12:00:00"
-		weekly_repeat_days = ["MONDAY", "TUESDAY", "FRIDAY"]
+	schedule { 
+		%[6]s
 	}
-}`, name, description, attribute, operator, values)
+}`, name, description, attribute, operator, values, schedule)
 }
 
 func testAccCheckNewRelicAlertMutingRuleExists(n string) resource.TestCheckFunc {
