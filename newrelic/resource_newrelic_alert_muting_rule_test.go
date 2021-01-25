@@ -19,7 +19,7 @@ func TestAccNewRelicAlertMutingRule_Basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// CheckDestroy: testAccCheckNewRelicAlertMutingRuleDestroy,
+		CheckDestroy: testAccCheckNewRelicAlertMutingRuleDestroy,
 		Steps: []resource.TestStep{
 			// Test: Create
 			{
@@ -45,13 +45,13 @@ func TestAccNewRelicAlertMutingRule_Basic(t *testing.T) {
 }
 
 func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
-	resourceName := "newrelic_alert_muting_rule.foo"
+	resourceName := "newrelic_alert_muting_rule.bar"
 	rName := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
-		// CheckDestroy: testAccCheckNewRelicAlertMutingRuleDestroy,
+		CheckDestroy: testAccCheckNewRelicAlertMutingRuleDestroy,
 		Steps: []resource.TestStep{
 			// Test: Create
 			{
@@ -83,23 +83,24 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 					"baseline",
 					`
 						end_repeat         = "2022-06-11T12:00:00"
-						weekly_repeat_days = ["MONDAY", "TUESDAY", "THURSDAY", "FRIDAY"]
+						weekly_repeat_days = ["MONDAY", "TUESDAY", "THURSDAY", "LLAMA"]
+						time_zone          = "America/Los_Angeles"
+
 					`,
 				),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckNewRelicAlertMutingRuleExists(resourceName),
 				),
 			},
-			// // Test: Import
+			// Test: Import
 			//	{
 			//		ResourceName:      resourceName,
 			//		ImportState:       true,
-			//		ImportStateVerify: true},
+			//		ImportStateVerify: true,
+			//	},
 		},
 	})
 }
-
-//TODO: Test passing "LLAMA" to Repeat
 
 func testAccNewRelicAlertMutingRuleBasic(
 	name string,
@@ -141,7 +142,7 @@ func testAccNewRelicAlertMutingRuleWithSchedule(
 ) string {
 	return fmt.Sprintf(`
 
-resource "newrelic_alert_muting_rule" "foo" {
+resource "newrelic_alert_muting_rule" "bar" {
 	name = "tf-test-%[1]s"
 	enabled = true
 	description = "%[2]s"
