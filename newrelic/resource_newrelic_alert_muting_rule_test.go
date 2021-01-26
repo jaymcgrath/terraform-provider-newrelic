@@ -83,7 +83,7 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 					"baseline",
 					`
 						end_repeat         = "2022-06-11T12:00:00"
-						weekly_repeat_days = ["MONDAY", "TUESDAY", "THURSDAY", "LLAMA"]
+						weekly_repeat_days = ["MONDAY", "TUESDAY", "THURSDAY",]
 						time_zone          = "America/Los_Angeles"
 
 					`,
@@ -92,7 +92,8 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 					testAccCheckNewRelicAlertMutingRuleExists(resourceName),
 				),
 			},
-			// Test: Import
+			//Test: Import
+			// TODO - determine why this is failing
 			//	{
 			//		ResourceName:      resourceName,
 			//		ImportState:       true,

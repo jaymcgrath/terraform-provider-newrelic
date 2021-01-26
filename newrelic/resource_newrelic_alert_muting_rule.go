@@ -14,6 +14,7 @@ func scheduleSchema() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The datetime stamp when the MutingRule schedule should stop repeating.",
+				ConflictsWith: []string{"schedule.repeat_count"},
 				//TODO: add validation func
 			},
 			"end_time": {
@@ -23,17 +24,16 @@ func scheduleSchema() *schema.Resource {
 				//TODO: add validation func
 			},
 			"repeat": {
-				//TODO: should this be an enum type? Should we mention enum values in desc?
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The frequency the MutingRule schedule repeats.",
+				Description: "The frequency the MutingRule schedule repeats. One of [DAILY, WEEKLY, MONTHLY]",
 				//TODO: add validation func
 			},
 			"repeat_count": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The number of times the MutingRule schedule should repeat.",
-				//TODO: add validation func?
+				ConflictsWith: []string{"schedule.end_repeat"},
 			},
 			"start_time": {
 				Type:        schema.TypeString,
