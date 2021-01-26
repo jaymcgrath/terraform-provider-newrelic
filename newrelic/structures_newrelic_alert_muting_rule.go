@@ -110,6 +110,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 				return alerts.MutingRuleScheduleUpdateInput{}, err
 			}
 			schedule.StartTime = &alerts.NaiveDateTime{Time: formattedStartTime}
+		} else {
+			schedule.StartTime = nil
 		}
 	}
 
@@ -121,6 +123,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 				return alerts.MutingRuleScheduleUpdateInput{}, err
 			}
 			schedule.EndTime = &alerts.NaiveDateTime{Time: formattedEndTime}
+		} else {
+			schedule.EndTime = nil
 		}
 	}
 
@@ -135,6 +139,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 		if r != "" {
 			sr := alerts.MutingRuleScheduleRepeat(strings.ToUpper(r))
 			schedule.Repeat = &sr
+		} else {
+			schedule.Repeat = nil
 		}
 	}
 
@@ -146,6 +152,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 				return alerts.MutingRuleScheduleUpdateInput{}, err
 			}
 			schedule.EndRepeat = &alerts.NaiveDateTime{Time: formattedEndRepeat}
+		} else {
+			schedule.EndRepeat = nil
 		}
 	}
 
@@ -153,6 +161,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 		r := repeatCount.(int)
 		if r > 0 {
 			schedule.RepeatCount = &r
+		} else {
+			schedule.EndRepeat = nil
 		}
 	}
 
@@ -164,6 +174,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 				repeatDays[i] = alerts.DayOfWeek(strings.ToUpper(day.(string)))
 			}
 			schedule.WeeklyRepeatDays = &repeatDays
+		} else {
+			schedule.WeeklyRepeatDays = nil
 		}
 	}
 	return schedule, nil
@@ -243,22 +255,63 @@ func expandMutingRuleValues(values []interface{}) []string {
 
 func flattenMutingRule(mutingRule *alerts.MutingRule, d *schema.ResourceData) error {
 
-	x, ok := d.GetOk("condition")
+	x := d.Get("condition")
 	configuredCondition := x.([]interface{})
 
 	d.Set("enabled", mutingRule.Enabled)
-	err := d.Set("condition", flattenMutingRuleConditionGroup(mutingRule.Condition, configuredCondition, ok))
+	err := d.Set("condition", flattenMutingRuleConditionGroup(mutingRule.Condition, configuredCondition))
 	if err != nil {
 		return nil
 	}
 
 	d.Set("description", mutingRule.Description)
 	d.Set("name", mutingRule.Name)
-
+	d.Set("schedule", mutingRule.Schedule)
+	//
+	//s := schema.ResourceData{}
+	//
+	//if err := flattenSchedule(&s, mutingRule.Schedule); err != nil {
+	//	return err
+	//}
+	//d.Set("schedule", s)
 	return nil
 }
 
-func flattenMutingRuleConditionGroup(in alerts.MutingRuleConditionGroup, configuredCondition []interface{}, ok bool) []map[string]interface{} {
+//func flattenSchedule(d *schema.ResourceData, schedule *alerts.MutingRuleSchedule) error{
+//	if schedule == nil {
+//		return nil
+//	}
+//
+//	if err := d.Set("start_time", schedule.StartTime.Format("2006-01-02T15:04:05")); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.start_time`: %v", err)
+//	}
+//
+//	if err := d.Set("end_time", schedule.EndTime); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.end_time`: %v", err)
+//	}
+//
+//	if err := d.Set("time_zone", schedule.TimeZone); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.time_zone`: %v", err)
+//	}
+//
+//	if err := d.Set("repeat", schedule.Repeat); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.repeat`: %v", err)
+//	}
+//
+//	if err := d.Set("end_repeat", schedule.EndRepeat); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.end_repeat`: %v", err)
+//	}
+//	if err := d.Set("repeat_count", schedule.RepeatCount); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.repeat_count`: %v", err)
+//	}
+//	if err := d.Set("weekly_repeat_days", schedule.WeeklyRepeatDays); err != nil {
+//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.weekly_repeat_days`: %v", err)
+//	}
+//
+//	return nil
+//}
+
+func flattenMutingRuleConditionGroup(in alerts.MutingRuleConditionGroup, configuredCondition []interface{}) []map[string]interface{} {
 
 	condition := []map[string]interface{}{
 		{
