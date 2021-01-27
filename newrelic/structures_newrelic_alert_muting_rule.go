@@ -1,10 +1,12 @@
 package newrelic
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/newrelic/newrelic-client-go/pkg/alerts"
+	"fmt"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/newrelic/newrelic-client-go/pkg/alerts"
 )
 
 func expandMutingRuleCreateInput(d *schema.ResourceData) (alerts.MutingRuleCreateInput, error) {
@@ -266,50 +268,16 @@ func flattenMutingRule(mutingRule *alerts.MutingRule, d *schema.ResourceData) er
 
 	d.Set("description", mutingRule.Description)
 	d.Set("name", mutingRule.Name)
-	d.Set("schedule", mutingRule.Schedule)
-	//
-	//s := schema.ResourceData{}
-	//
-	//if err := flattenSchedule(&s, mutingRule.Schedule); err != nil {
-	//	return err
-	//}
-	//d.Set("schedule", s)
+
+	if mutingRule.Schedule != nil {
+		configuredSchedule := d.Get("schedule.0").(map[string]interface{})
+		if err := d.Set("schedule", flattenSchedule(mutingRule.Schedule, configuredSchedule)); err != nil {
+			return fmt.Errorf("[Error] Error setting `schedule`: %v", err)
+		}
+	}
+
 	return nil
 }
-
-//func flattenSchedule(d *schema.ResourceData, schedule *alerts.MutingRuleSchedule) error{
-//	if schedule == nil {
-//		return nil
-//	}
-//
-//	if err := d.Set("start_time", schedule.StartTime.Format("2006-01-02T15:04:05")); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.start_time`: %v", err)
-//	}
-//
-//	if err := d.Set("end_time", schedule.EndTime); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.end_time`: %v", err)
-//	}
-//
-//	if err := d.Set("time_zone", schedule.TimeZone); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.time_zone`: %v", err)
-//	}
-//
-//	if err := d.Set("repeat", schedule.Repeat); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.repeat`: %v", err)
-//	}
-//
-//	if err := d.Set("end_repeat", schedule.EndRepeat); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.end_repeat`: %v", err)
-//	}
-//	if err := d.Set("repeat_count", schedule.RepeatCount); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.repeat_count`: %v", err)
-//	}
-//	if err := d.Set("weekly_repeat_days", schedule.WeeklyRepeatDays); err != nil {
-//		return fmt.Errorf("[DEBUG] Error setting alert muting rule `schedule.weekly_repeat_days`: %v", err)
-//	}
-//
-//	return nil
-//}
 
 func flattenMutingRuleConditionGroup(in alerts.MutingRuleConditionGroup, configuredCondition []interface{}) []map[string]interface{} {
 
@@ -330,6 +298,7 @@ func flattenMutingRuleConditionGroup(in alerts.MutingRuleConditionGroup, configu
 
 	return condition
 }
+
 func handleImportFlattenCondition(conditions []alerts.MutingRuleCondition) []map[string]interface{} {
 	var condition []map[string]interface{}
 
@@ -344,6 +313,7 @@ func handleImportFlattenCondition(conditions []alerts.MutingRuleCondition) []map
 
 	return condition
 }
+
 func flattenMutingRuleCondition(conditions []interface{}) []map[string]interface{} {
 	var condition []map[string]interface{}
 
@@ -358,8 +328,51 @@ func flattenMutingRuleCondition(conditions []interface{}) []map[string]interface
 			}
 			condition = append(condition, dst)
 		}
-
 	}
 
 	return condition
+}
+
+func flattenSchedule(schedule *alerts.MutingRuleSchedule, configSchedule map[string]interface{}) []interface{} {
+	out := map[string]interface{}{}
+
+	if schedule.StartTime != nil {
+		out["start_time"] = schedule.StartTime.Format(time.RFC3339)
+	}
+
+	if schedule.EndTime != nil {
+		out["end_time"] = schedule.EndTime.Format(time.RFC3339)
+	}
+
+	if schedule.EndRepeat != nil {
+		out["end_repeat"] = schedule.EndRepeat.Format(time.RFC3339)
+	}
+
+	if schedule.Repeat != nil {
+		out["repeat"] = string(*schedule.Repeat)
+	}
+
+	if schedule.TimeZone != "" {
+		out["time_zone"] = schedule.TimeZone
+	}
+
+	if schedule.RepeatCount != nil {
+		out["repeat_count"] = *schedule.RepeatCount
+	}
+
+	if schedule.WeeklyRepeatDays != nil {
+		out["weekly_repeat_days"] = flattenWeeklyRepeatDays(*schedule.WeeklyRepeatDays)
+	}
+
+	return []interface{}{out}
+}
+
+func flattenWeeklyRepeatDays(daysOfWeek []alerts.DayOfWeek) []string {
+	out := make([]string, len(daysOfWeek))
+
+	for i, d := range daysOfWeek {
+		out[i] = string(d)
+	}
+
+	return out
 }
