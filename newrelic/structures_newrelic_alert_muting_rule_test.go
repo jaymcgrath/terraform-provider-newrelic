@@ -17,7 +17,8 @@ import (
 func TestFlattenSchedule(t *testing.T) {
 	t.Parallel()
 
-	timestamp := time.Now()
+	timestamp, _ := time.Parse(time.RFC3339, "2021-01-21T15:30:00+08:00")
+
 	repeat := alerts.MutingRuleScheduleRepeat("WEEKLY")
 
 	mockMutingRuleSchedule := alerts.MutingRuleSchedule{
@@ -44,7 +45,7 @@ func TestFlattenSchedule(t *testing.T) {
 		},
 	}
 
-	result := flattenSchedule(&mockMutingRuleSchedule, mockScheduleConfig)
+	result := flattenSchedule(&mockMutingRuleSchedule)
 
 	require.Equal(t, []interface{}{mockScheduleConfig}, result)
 }

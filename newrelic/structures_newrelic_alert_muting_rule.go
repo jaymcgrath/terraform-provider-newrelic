@@ -270,8 +270,7 @@ func flattenMutingRule(mutingRule *alerts.MutingRule, d *schema.ResourceData) er
 	d.Set("name", mutingRule.Name)
 
 	if mutingRule.Schedule != nil {
-		configuredSchedule := d.Get("schedule.0").(map[string]interface{})
-		if err := d.Set("schedule", flattenSchedule(mutingRule.Schedule, configuredSchedule)); err != nil {
+		if err := d.Set("schedule", flattenSchedule(mutingRule.Schedule)); err != nil {
 			return fmt.Errorf("[Error] Error setting `schedule`: %v", err)
 		}
 	}
@@ -333,19 +332,19 @@ func flattenMutingRuleCondition(conditions []interface{}) []map[string]interface
 	return condition
 }
 
-func flattenSchedule(schedule *alerts.MutingRuleSchedule, configSchedule map[string]interface{}) []interface{} {
+func flattenSchedule(schedule *alerts.MutingRuleSchedule) []interface{} {
 	out := map[string]interface{}{}
 
 	if schedule.StartTime != nil {
-		out["start_time"] = schedule.StartTime.Format(time.RFC3339)
+		out["start_time"] = schedule.StartTime.Format("2006-01-02T15:04:05")
 	}
 
 	if schedule.EndTime != nil {
-		out["end_time"] = schedule.EndTime.Format(time.RFC3339)
+		out["end_time"] = schedule.EndTime.Format("2006-01-02T15:04:05")
 	}
 
 	if schedule.EndRepeat != nil {
-		out["end_repeat"] = schedule.EndRepeat.Format(time.RFC3339)
+		out["end_repeat"] = schedule.EndRepeat.Format("2006-01-02T15:04:05")
 	}
 
 	if schedule.Repeat != nil {
