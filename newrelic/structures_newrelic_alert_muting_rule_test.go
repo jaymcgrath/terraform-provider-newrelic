@@ -3,6 +3,7 @@
 package newrelic
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"testing"
 	"time"
 
@@ -46,4 +47,163 @@ func TestFlattenSchedule(t *testing.T) {
 	result := flattenSchedule(&mockMutingRuleSchedule, mockScheduleConfig)
 
 	require.Equal(t, []interface{}{mockScheduleConfig}, result)
+}
+
+func TestExpandScheduleUpdate_Basic(t *testing.T) {
+	t.Parallel()
+	ts, _ :=  time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	timestamp := alerts.NaiveDateTime{Time: ts}
+	timeZone := "America/Los_Angeles"
+	repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
+
+	testSchema := &schema.Set{F: schema.HashString}
+	testSchema.Add("MONDAY")
+	testSchema.Add("TUESDAY")
+
+
+
+	mockScheduleConfig := map[string]interface{}{
+		"start_time": "2021-01-21T15:30:00",
+		"end_time":   "2021-01-21T15:30:00",
+		"end_repeat": "2021-01-21T15:30:00",
+		"time_zone":  "America/Los_Angeles",
+		"repeat":     "WEEKLY",
+		"weekly_repeat_days": testSchema,
+	}
+
+	result, _ := expandMutingRuleUpdateSchedule(mockScheduleConfig)
+
+	expected := alerts.MutingRuleScheduleUpdateInput{
+		StartTime: &timestamp,
+		EndTime:   &timestamp,
+		TimeZone:  &timeZone,
+		Repeat:    &repeat,
+		EndRepeat: &timestamp,
+		WeeklyRepeatDays: &[]alerts.DayOfWeek{
+			"TUESDAY",
+			"MONDAY",
+
+
+		},
+	}
+
+	require.Equal(t, expected, result)
+
+}
+
+func TestExpandScheduleCreate_Basic(t *testing.T) {
+	t.Parallel()
+	ts, _ :=  time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	timestamp := alerts.NaiveDateTime{Time: ts}
+	timeZone := "America/Los_Angeles"
+	repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
+
+	testSchema := &schema.Set{F: schema.HashString}
+	testSchema.Add("MONDAY")
+	testSchema.Add("TUESDAY")
+
+
+
+	mockScheduleConfig := map[string]interface{}{
+		"start_time": "2021-01-21T15:30:00",
+		"end_time":   "2021-01-21T15:30:00",
+		"end_repeat": "2021-01-21T15:30:00",
+		"time_zone":  "America/Los_Angeles",
+		"repeat":     "WEEKLY",
+		"weekly_repeat_days": testSchema,
+	}
+
+	result, _ := expandMutingRuleCreateSchedule(mockScheduleConfig)
+
+	expected := alerts.MutingRuleScheduleCreateInput{
+		StartTime: &timestamp,
+		EndTime:   &timestamp,
+		TimeZone:  timeZone,
+		Repeat:    &repeat,
+		EndRepeat: &timestamp,
+		WeeklyRepeatDays: &[]alerts.DayOfWeek{
+			"TUESDAY",
+			"MONDAY",
+
+
+		},
+	}
+
+	require.Equal(t, expected, result)
+
+}
+
+
+func TestExpandScheduleUpdate_EmptyFields(t *testing.T) {
+	// similar to Basic, but assert that empty ("") fields are converted to nil
+	t.Parallel()
+	ts, _ :=  time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	timestamp := alerts.NaiveDateTime{Time: ts}
+	timeZone := "America/Los_Angeles"
+	repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
+
+	testSchema := &schema.Set{F: schema.HashString}
+	testSchema.Add("MONDAY")
+	testSchema.Add("TUESDAY")
+
+
+
+	mockScheduleConfig := map[string]interface{}{
+		"start_time": "2021-01-21T15:30:00",
+		"end_time":   "",
+		"end_repeat": "",
+		"time_zone":  "America/Los_Angeles",
+		"repeat":     "WEEKLY",
+		"weekly_repeat_days": testSchema,
+	}
+
+	result, _ := expandMutingRuleUpdateSchedule(mockScheduleConfig)
+
+	expected := alerts.MutingRuleScheduleUpdateInput{
+		StartTime: &timestamp,
+		EndTime:   nil,
+		TimeZone:  &timeZone,
+		Repeat:    &repeat,
+		EndRepeat: nil,
+		WeeklyRepeatDays: &[]alerts.DayOfWeek{
+			"TUESDAY",
+			"MONDAY",
+
+
+		},
+	}
+
+	require.Equal(t, expected, result)
+}
+
+func TestExpandScheduleCreate_EmptyFields(t *testing.T) {
+	// similar to Basic, but assert that empty ("") and omitted fields are left out
+
+	t.Parallel()
+	ts, _ := time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	timestamp := alerts.NaiveDateTime{Time: ts}
+	timeZone := "America/Los_Angeles"
+	//repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
+
+	testSchema := &schema.Set{F: schema.HashString}
+	testSchema.Add("MONDAY")
+	testSchema.Add("TUESDAY")
+
+	mockScheduleConfig := map[string]interface{}{
+		"start_time":         "2021-01-21T15:30:00",
+		"end_time":           "2021-01-21T15:30:00",
+		"end_repeat":         "",
+		"time_zone":          "America/Los_Angeles",
+	}
+
+	result, _ := expandMutingRuleCreateSchedule(mockScheduleConfig)
+
+	expected := alerts.MutingRuleScheduleCreateInput{
+		StartTime: &timestamp,
+		EndTime:   &timestamp,
+		TimeZone:  timeZone,
+	}
+
+	require.Equal(t, expected, result)
+
 }
