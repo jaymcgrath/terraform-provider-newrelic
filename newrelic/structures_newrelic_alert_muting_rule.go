@@ -60,7 +60,8 @@ func expandMutingRuleCreateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 		schedule.TimeZone = timeZone.(string)
 	}
 
-	if repeat, ok := cfg["repeat"]; ok {
+	repeat, ok := cfg["repeat"]
+	if ok {
 		r := repeat.(string)
 		if r != "" {
 			sr := alerts.MutingRuleScheduleRepeat(strings.ToUpper(r))
@@ -90,12 +91,16 @@ func expandMutingRuleCreateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 
 	if weeklyRepeatDays, ok := cfg["weekly_repeat_days"]; ok {
 		repeatDaysAsList := weeklyRepeatDays.(*schema.Set).List()
-		if rdLen := len(repeatDaysAsList); rdLen > 0 {
-			repeatDays := make([]alerts.DayOfWeek, rdLen)
-			for i, day := range repeatDaysAsList {
-				repeatDays[i] = alerts.DayOfWeek(strings.ToUpper(day.(string)))
+		rdLen := len(repeatDaysAsList)
+		if rdLen > 0 || repeat == "WEEKLY" {
+			// start with slice of len 0
+			repeatDays := []alerts.DayOfWeek{}
+			for _, day := range repeatDaysAsList {
+				repeatDays = append(repeatDays, alerts.DayOfWeek(strings.ToUpper(day.(string))))
 			}
 			schedule.WeeklyRepeatDays = &repeatDays
+		} else {
+			schedule.WeeklyRepeatDays = nil
 		}
 	}
 	return schedule, nil
@@ -135,8 +140,8 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 			schedule.TimeZone = &rawTimeZone
 		}
 	}
-
-	if repeat, ok := cfg["repeat"]; ok {
+	repeat, ok := cfg["repeat"]
+	if ok {
 		r := repeat.(string)
 		if r != "" {
 			sr := alerts.MutingRuleScheduleRepeat(strings.ToUpper(r))
@@ -170,10 +175,12 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 
 	if weeklyRepeatDays, ok := cfg["weekly_repeat_days"]; ok {
 		repeatDaysAsList := weeklyRepeatDays.(*schema.Set).List()
-		if rdLen := len(repeatDaysAsList); rdLen > 0 {
-			repeatDays := make([]alerts.DayOfWeek, rdLen)
-			for i, day := range repeatDaysAsList {
-				repeatDays[i] = alerts.DayOfWeek(strings.ToUpper(day.(string)))
+		rdLen := len(repeatDaysAsList)
+		if rdLen > 0 || repeat == "WEEKLY" {
+			// start with slice of len 0
+			repeatDays := []alerts.DayOfWeek{}
+			for _, day := range repeatDaysAsList {
+				repeatDays = append(repeatDays, alerts.DayOfWeek(strings.ToUpper(day.(string))))
 			}
 			schedule.WeeklyRepeatDays = &repeatDays
 		} else {
@@ -359,18 +366,20 @@ func flattenSchedule(schedule *alerts.MutingRuleSchedule) []interface{} {
 		out["repeat_count"] = *schedule.RepeatCount
 	}
 
-	if schedule.WeeklyRepeatDays != nil {
+	if schedule.WeeklyRepeatDays != nil || *schedule.Repeat == "WEEKLY" {
 		out["weekly_repeat_days"] = flattenWeeklyRepeatDays(*schedule.WeeklyRepeatDays)
+	} else {
+		out["weekly_repeat_days"] = nil
 	}
 
 	return []interface{}{out}
 }
 
 func flattenWeeklyRepeatDays(daysOfWeek []alerts.DayOfWeek) []string {
-	out := make([]string, len(daysOfWeek))
+	out := []string{}
 
-	for i, d := range daysOfWeek {
-		out[i] = string(d)
+	for _, d := range daysOfWeek {
+		out = append(out, string(d))
 	}
 
 	return out

@@ -65,7 +65,7 @@ func scheduleSchema() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString, ValidateFunc: validation.StringInSlice([]string{"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}, false)},
 				Optional:    true,
 				Description: "The day(s) of the week that a MutingRule should repeat when the repeat field is set to WEEKLY.",
-				MinItems:    1,
+				MinItems:    0,
 				MaxItems:    7,
 			},
 		},
