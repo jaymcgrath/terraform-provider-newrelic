@@ -3,7 +3,9 @@
 package newrelic
 
 import (
+	"errors"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
 
@@ -12,13 +14,63 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+func TestValidateNaiveDateTime_Validates(t *testing.T) {
+	validDate := "2021-02-21T15:30:00"
+	resourceName := "schedule.0.end_repeat"
+
+	warns, errs := validateNaiveDateTime(validDate, resourceName)
+
+	require.Equal(t, []string([]string(nil)), warns)
+	require.Equal(t, []error([]error(nil)), errs)
+
+}
+
+func TestValidateNaiveDateTime_RejectsNumericOffset(t *testing.T) {
+	// It should reject any 8601 time with an offset
+	invalidDate := "2021-02-21T15:30:00-08:00"
+	resourceName := "schedule.0.end_repeat"
+
+	warns, errs := validateNaiveDateTime(invalidDate, resourceName)
+	expectedErrs := []error{errors.New("\"schedule.0.end_repeat\" of \"2021-02-21T15:30:00-08:00\" must be in the format 2006-01-02T15:04:05")}
+
+	require.Equal(t, []string([]string(nil)), warns)
+	require.Equal(t, expectedErrs, errs)
+
+}
+
+func TestValidateNaiveDateTime_RejectsGMTOffset(t *testing.T) {
+	// It should reject an 8601 time with GMT designation
+	invalidDate := "2021-02-21T15:30:00Z"
+	resourceName := "schedule.0.end_repeat"
+
+	warns, errs := validateNaiveDateTime(invalidDate, resourceName)
+	expectedErrs := []error{errors.New("\"schedule.0.end_repeat\" of \"2021-02-21T15:30:00Z\" must be in the format 2006-01-02T15:04:05")}
+
+	require.Equal(t, []string([]string(nil)), warns)
+	require.Equal(t, expectedErrs, errs)
+
+}
+
+func TestValidateNaiveDateTime_RejectsUnixDateTime(t *testing.T) {
+	// It should reject an 8601 time with GMT designation
+	invalidDate := "123456789123456"
+	resourceName := "schedule.0.end_repeat"
+
+	warns, errs := validateNaiveDateTime(invalidDate, resourceName)
+	expectedErrs := []error{errors.New("\"schedule.0.end_repeat\" of \"123456789123456\" must be in the format 2006-01-02T15:04:05")}
+
+	require.Equal(t, []string([]string(nil)), warns)
+	require.Equal(t, expectedErrs, errs)
+
+}
+
 func TestAccNewRelicAlertMutingRule_Basic(t *testing.T) {
 	resourceName := "newrelic_alert_muting_rule.foo"
 	rName := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNewRelicAlertMutingRuleDestroy,
 		Steps: []resource.TestStep{
 			// Test: Create
@@ -49,8 +101,8 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 	rName := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckNewRelicAlertMutingRuleDestroy,
 		Steps: []resource.TestStep{
 			// Test: Create
