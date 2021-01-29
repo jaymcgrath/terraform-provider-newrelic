@@ -66,7 +66,7 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 						end_time           = "2021-01-21T16:30:00"
 						time_zone          = "America/Los_Angeles"
 						repeat             = "WEEKLY"
-						end_repeat         = "2021-06-11T12:00:00"
+						end_repeat         = "2022-06-11T12:00:00"
 						weekly_repeat_days = ["MONDAY", "TUESDAY", "FRIDAY"]
 					`,
 				),
@@ -82,10 +82,11 @@ func TestAccNewRelicAlertMutingRule_WithSchedule(t *testing.T) {
 					"NOT_EQUALS",
 					"baseline",
 					`
+						start_time         = "2021-02-21T15:30:00"
+						end_time           = "2021-02-21T16:30:00"
 						end_repeat         = "2022-06-11T12:00:00"
-						weekly_repeat_days = ["MONDAY", "TUESDAY", "THURSDAY",]
+						repeat             = "DAILY"
 						time_zone          = "America/Los_Angeles"
-
 					`,
 				),
 				Check: resource.ComposeTestCheckFunc(

@@ -164,7 +164,7 @@ func expandMutingRuleUpdateSchedule(cfg map[string]interface{}) (alerts.MutingRu
 		if r > 0 {
 			schedule.RepeatCount = &r
 		} else {
-			schedule.EndRepeat = nil
+			schedule.RepeatCount = nil
 		}
 	}
 
