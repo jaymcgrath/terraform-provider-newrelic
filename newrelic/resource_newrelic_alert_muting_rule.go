@@ -1,11 +1,23 @@
 package newrelic
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/newrelic/newrelic-client-go/pkg/errors"
 	"log"
+	"time"
 )
+
+func validateNaiveDateTime(val interface{}, key string) (warns []string, errs []error) {
+	valueString := val.(string)
+
+	// test conversion to desired format:
+	_, err := time.Parse("2006-01-02T15:04:05", valueString); if err != nil {
+		errs = append(errs, fmt.Errorf("%#v of %#v must be in the format 2006-01-02T15:04:05", key, valueString))
+	}
+	return
+}
 
 func scheduleSchema() *schema.Resource {
 	return &schema.Resource{
@@ -15,31 +27,33 @@ func scheduleSchema() *schema.Resource {
 				Optional:    true,
 				Description: "The datetime stamp when the MutingRule schedule should stop repeating.",
 				ConflictsWith: []string{"schedule.repeat_count"},
-				//TODO: add validation func
+				ValidateFunc: validateNaiveDateTime,
 			},
 			"end_time": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The datetime stamp representing when the MutingRule should end.",
-				//TODO: add validation func
+				ValidateFunc: validateNaiveDateTime,
 			},
 			"repeat": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The frequency the MutingRule schedule repeats. One of [DAILY, WEEKLY, MONTHLY]",
-				//TODO: add validation func
+				//TODO: should this ignore case?
+				ValidateFunc: validation.StringInSlice([]string{"DAILY", "WEEKLY", "MONTHLY"}, false),
 			},
 			"repeat_count": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "The number of times the MutingRule schedule should repeat.",
 				ConflictsWith: []string{"schedule.end_repeat"},
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"start_time": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The datetime stamp representing when the MutingRule should start.",
-				//TODO: add validation func
+				ValidateFunc: validateNaiveDateTime,
 			},
 			"time_zone": {
 				Type:        schema.TypeString,
