@@ -13,7 +13,8 @@ func validateNaiveDateTime(val interface{}, key string) (warns []string, errs []
 	valueString := val.(string)
 
 	// test conversion to desired format:
-	_, err := time.Parse("2006-01-02T15:04:05", valueString); if err != nil {
+	_, err := time.Parse("2006-01-02T15:04:05", valueString)
+	if err != nil {
 		errs = append(errs, fmt.Errorf("%#v of %#v must be in the format 2006-01-02T15:04:05", key, valueString))
 	}
 	return
@@ -23,47 +24,45 @@ func scheduleSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"end_repeat": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The datetime stamp when the MutingRule schedule should stop repeating.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				Description:   "The datetime stamp when the MutingRule schedule should stop repeating.",
 				ConflictsWith: []string{"schedule.repeat_count"},
-				ValidateFunc: validateNaiveDateTime,
+				ValidateFunc:  validateNaiveDateTime,
 			},
 			"end_time": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The datetime stamp representing when the MutingRule should end.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The datetime stamp representing when the MutingRule should end.",
 				ValidateFunc: validateNaiveDateTime,
 			},
 			"repeat": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The frequency the MutingRule schedule repeats. One of [DAILY, WEEKLY, MONTHLY]",
-				//TODO: should this ignore case?
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The frequency the MutingRule schedule repeats. One of [DAILY, WEEKLY, MONTHLY]",
 				ValidateFunc: validation.StringInSlice([]string{"DAILY", "WEEKLY", "MONTHLY"}, false),
 			},
 			"repeat_count": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "The number of times the MutingRule schedule should repeat.",
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Description:   "The number of times the MutingRule schedule should repeat.",
 				ConflictsWith: []string{"schedule.end_repeat"},
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc:  validation.IntAtLeast(1),
 			},
 			"start_time": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The datetime stamp representing when the MutingRule should start.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The datetime stamp representing when the MutingRule should start.",
 				ValidateFunc: validateNaiveDateTime,
 			},
 			"time_zone": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The time zone that applies to the MutingRule schedule.",
-				//TODO: add validation func
 			},
 			"weekly_repeat_days": {
 				Type:        schema.TypeSet,
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Elem:        &schema.Schema{Type: schema.TypeString, ValidateFunc: validation.StringInSlice([]string{"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}, false)},
 				Optional:    true,
 				Description: "The day(s) of the week that a MutingRule should repeat when the repeat field is set to WEEKLY.",
 				MinItems:    1,
