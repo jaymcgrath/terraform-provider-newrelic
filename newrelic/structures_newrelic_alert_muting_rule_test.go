@@ -11,9 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// This test currently fails due to the time zone being
-// appended via formatting, but should be resolved with
-// the custom unmarshal method being implemented.
 func TestFlattenSchedule(t *testing.T) {
 	t.Parallel()
 
@@ -52,7 +49,7 @@ func TestFlattenSchedule(t *testing.T) {
 
 func TestExpandScheduleUpdate_Basic(t *testing.T) {
 	t.Parallel()
-	ts, _ :=  time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	ts, _ := time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
 	timestamp := alerts.NaiveDateTime{Time: ts}
 	timeZone := "America/Los_Angeles"
 	repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
@@ -61,14 +58,12 @@ func TestExpandScheduleUpdate_Basic(t *testing.T) {
 	testSchema.Add("MONDAY")
 	testSchema.Add("TUESDAY")
 
-
-
 	mockScheduleConfig := map[string]interface{}{
-		"start_time": "2021-01-21T15:30:00",
-		"end_time":   "2021-01-21T15:30:00",
-		"end_repeat": "2021-01-21T15:30:00",
-		"time_zone":  "America/Los_Angeles",
-		"repeat":     "WEEKLY",
+		"start_time":         "2021-01-21T15:30:00",
+		"end_time":           "2021-01-21T15:30:00",
+		"end_repeat":         "2021-01-21T15:30:00",
+		"time_zone":          "America/Los_Angeles",
+		"repeat":             "WEEKLY",
 		"weekly_repeat_days": testSchema,
 	}
 
@@ -83,8 +78,6 @@ func TestExpandScheduleUpdate_Basic(t *testing.T) {
 		WeeklyRepeatDays: &[]alerts.DayOfWeek{
 			"TUESDAY",
 			"MONDAY",
-
-
 		},
 	}
 
@@ -94,7 +87,7 @@ func TestExpandScheduleUpdate_Basic(t *testing.T) {
 
 func TestExpandScheduleCreate_Basic(t *testing.T) {
 	t.Parallel()
-	ts, _ :=  time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	ts, _ := time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
 	timestamp := alerts.NaiveDateTime{Time: ts}
 	timeZone := "America/Los_Angeles"
 	repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
@@ -103,14 +96,12 @@ func TestExpandScheduleCreate_Basic(t *testing.T) {
 	testSchema.Add("MONDAY")
 	testSchema.Add("TUESDAY")
 
-
-
 	mockScheduleConfig := map[string]interface{}{
-		"start_time": "2021-01-21T15:30:00",
-		"end_time":   "2021-01-21T15:30:00",
-		"end_repeat": "2021-01-21T15:30:00",
-		"time_zone":  "America/Los_Angeles",
-		"repeat":     "WEEKLY",
+		"start_time":         "2021-01-21T15:30:00",
+		"end_time":           "2021-01-21T15:30:00",
+		"end_repeat":         "2021-01-21T15:30:00",
+		"time_zone":          "America/Los_Angeles",
+		"repeat":             "WEEKLY",
 		"weekly_repeat_days": testSchema,
 	}
 
@@ -125,8 +116,6 @@ func TestExpandScheduleCreate_Basic(t *testing.T) {
 		WeeklyRepeatDays: &[]alerts.DayOfWeek{
 			"TUESDAY",
 			"MONDAY",
-
-
 		},
 	}
 
@@ -134,11 +123,10 @@ func TestExpandScheduleCreate_Basic(t *testing.T) {
 
 }
 
-
 func TestExpandScheduleUpdate_EmptyFields(t *testing.T) {
 	// similar to Basic, but assert that empty ("") fields are converted to nil
 	t.Parallel()
-	ts, _ :=  time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
+	ts, _ := time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
 	timestamp := alerts.NaiveDateTime{Time: ts}
 	timeZone := "America/Los_Angeles"
 	repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
@@ -147,14 +135,12 @@ func TestExpandScheduleUpdate_EmptyFields(t *testing.T) {
 	testSchema.Add("MONDAY")
 	testSchema.Add("TUESDAY")
 
-
-
 	mockScheduleConfig := map[string]interface{}{
-		"start_time": "2021-01-21T15:30:00",
-		"end_time":   "",
-		"end_repeat": "",
-		"time_zone":  "America/Los_Angeles",
-		"repeat":     "WEEKLY",
+		"start_time":         "2021-01-21T15:30:00",
+		"end_time":           "",
+		"end_repeat":         "",
+		"time_zone":          "America/Los_Angeles",
+		"repeat":             "WEEKLY",
 		"weekly_repeat_days": testSchema,
 	}
 
@@ -169,8 +155,6 @@ func TestExpandScheduleUpdate_EmptyFields(t *testing.T) {
 		WeeklyRepeatDays: &[]alerts.DayOfWeek{
 			"TUESDAY",
 			"MONDAY",
-
-
 		},
 	}
 
@@ -184,17 +168,12 @@ func TestExpandScheduleCreate_EmptyFields(t *testing.T) {
 	ts, _ := time.Parse("2006-01-02T15:04:05", "2021-01-21T15:30:00")
 	timestamp := alerts.NaiveDateTime{Time: ts}
 	timeZone := "America/Los_Angeles"
-	//repeat := alerts.MutingRuleScheduleRepeatTypes.WEEKLY
-
-	testSchema := &schema.Set{F: schema.HashString}
-	testSchema.Add("MONDAY")
-	testSchema.Add("TUESDAY")
 
 	mockScheduleConfig := map[string]interface{}{
-		"start_time":         "2021-01-21T15:30:00",
-		"end_time":           "2021-01-21T15:30:00",
-		"end_repeat":         "",
-		"time_zone":          "America/Los_Angeles",
+		"start_time": "2021-01-21T15:30:00",
+		"end_time":   "2021-01-21T15:30:00",
+		"end_repeat": "",
+		"time_zone":  "America/Los_Angeles",
 	}
 
 	result, _ := expandMutingRuleCreateSchedule(mockScheduleConfig)
