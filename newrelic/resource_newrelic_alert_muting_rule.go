@@ -169,7 +169,7 @@ func resourceNewRelicAlertMutingRuleCreate(d *schema.ResourceData, meta interfac
 
 	accountID := selectAccountID(providerConfig, d)
 
-	log.Printf("[INFO] Creating New Relic MutingRule alerts")
+	log.Printf("[INFO] Creating New Relic alert muting rule.")
 
 	created, err := client.Alerts.CreateMutingRule(accountID, createInput)
 	if err != nil {
@@ -184,7 +184,7 @@ func resourceNewRelicAlertMutingRuleCreate(d *schema.ResourceData, meta interfac
 func resourceNewRelicAlertMutingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ProviderConfig).NewClient
 
-	log.Printf("[INFO] Reading New Relic MutingRule alerts")
+	log.Printf("[INFO] Reading New Relic alert muting rule.")
 
 	ids, err := parseHashedIDs(d.Id())
 	if err != nil {
@@ -211,6 +211,8 @@ func resourceNewRelicAlertMutingRuleUpdate(d *schema.ResourceData, meta interfac
 	providerConfig := meta.(*ProviderConfig)
 	client := providerConfig.NewClient
 	accountID := selectAccountID(providerConfig, d)
+
+	log.Printf("[INFO] Updating New Relic alert muting rule.")
 
 	ids, err := parseHashedIDs(d.Id())
 	if err != nil {
